@@ -36,7 +36,11 @@ class AirConAccessory extends BroadlinkRMAccessory {
     if(config.noHistory !== true) {
       this.displayName = config.name;
       this.lastUpdatedAt = undefined;
-      this.historyService = new HistoryService("room", this, { storage: 'fs', filename: 'RMPro_' + config.name.replace(' ','-') + '_persist.json'});
+      if ( config.type === 'air-conditioner') {
+        this.historyService = new HistoryService("thermo", this, { storage: 'fs', filename: 'RMPro_' + config.name.replace(' ','-') + '_persist.json'});
+      } else {
+        this.historyService = new HistoryService("room", this, { storage: 'fs', filename: 'RMPro_' + config.name.replace(' ','-') + '_persist.json'});
+      }
       this.historyService.log = this.log;  
     }
 
@@ -413,11 +417,16 @@ class AirConAccessory extends BroadlinkRMAccessory {
     //Ignore readings of exactly zero - the default no value value.
     if(config.noHistory !== true && this.state.currentTemperature != 0.00) {
       this.lastUpdatedAt = Date.now();
-      if(debug) log(`\x1b[34m[DEBUG]\x1b[0m ${name} Logging data to history: temp: ${this.state.currentTemperature}, humidity: ${this.state.currentHumidity}`);
-      if(noHumidity){
-        this.historyService.addEntry({ time: Math.round(new Date().valueOf() / 1000), temp: this.state.currentTemperature });
-      }else{
-        this.historyService.addEntry({ time: Math.round(new Date().valueOf() / 1000), temp: this.state.currentTemperature, humidity: this.state.currentHumidity });
+      if ( config.type === 'air-conditioner') {
+        if(debug) log(`\x1b[34m[DEBUG]\x1b[0m ${name} Logging data to history: currentTemp: ${this.state.currentTemperature}, setTemp: ${this.state.targetTemperature}, valvePosition: ${(this.state.targetHeatingCoolingState * 20)}`);
+        this.historyService.addEntry({ time: Math.round(new Date().valueOf() / 1000), currentTemp: this.state.currentTemperature, setTemp: this.state.targetTemperature, valvePosition: (this.state.targetHeatingCoolingState * 20) });
+      } else {
+        if(debug) log(`\x1b[34m[DEBUG]\x1b[0m ${name} Logging data to history: temp: ${this.state.currentTemperature}, humidity: ${this.state.currentHumidity}`);
+        if(noHumidity){
+          this.historyService.addEntry({ time: Math.round(new Date().valueOf() / 1000), temp: this.state.currentTemperature });
+        }else{
+          this.historyService.addEntry({ time: Math.round(new Date().valueOf() / 1000), temp: this.state.currentTemperature, humidity: this.state.currentHumidity });
+        }
       }
     }
     
