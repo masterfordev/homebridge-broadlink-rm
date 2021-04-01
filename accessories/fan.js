@@ -186,7 +186,7 @@ class FanAccessory extends SwitchAccessory {
         setValuePromise: this.setFanSpeed.bind(this),
 		    minStep: config.stepSize,
 		    minValue: 0,
-		    maxVlue: 100
+		    maxValue: 100
       }
     });
 
